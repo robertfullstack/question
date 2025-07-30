@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { db } from '../firebaseConfig';
-import { ref, get, set, remove } from 'firebase/database';
+import { ref, get, set, remove, push, onValue } from 'firebase/database';
 import '../styles/Painel.css';
 
 const userId = 'user123'; // ID fixo só para exemplo. Use o ID real do usuário logado!
@@ -169,45 +169,100 @@ const Painel = () => {
 const QuestaoComResposta = ({ questao, favorito, toggleFavorito }) => {
     const [respostaSelecionada, setRespostaSelecionada] = useState(null);
     const [mostrarResultado, setMostrarResultado] = useState(false);
+    const [alternativasEliminadas, setAlternativasEliminadas] = useState([]);
 
-    const handleRespostaClick = (index) => {
-        if (mostrarResultado) return; // evita mudar resposta depois de mostrar resultado
-        setRespostaSelecionada(index);
-        setMostrarResultado(true);
+    // Comentários
+    const [comentario, setComentario] = useState('');
+    const [comentarios, setComentarios] = useState([]);
+    const [mostrarComentarios, setMostrarComentarios] = useState(false); // 👈 novo estado
+
+    const correta = questao.correta;
+
+    useEffect(() => {
+        const comentariosRef = ref(db, `comentarios/${questao.id}`);
+        const unsubscribe = onValue(comentariosRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                const lista = Object.entries(data).map(([id, c]) => ({ id, ...c }));
+                setComentarios(lista.reverse());
+            } else {
+                setComentarios([]);
+            }
+        });
+
+        return () => unsubscribe();
+    }, [questao.id]);
+
+    const enviarComentario = () => {
+        if (comentario.trim() === '') return;
+
+        const novoComentario = {
+            texto: comentario.trim(),
+            autor: 'Aluno',
+            timestamp: Date.now()
+        };
+
+        const comentariosRef = ref(db, `comentarios/${questao.id}`);
+        push(comentariosRef, novoComentario)
+            .then(() => setComentario(''))
+            .catch((err) => {
+                console.error('Erro ao enviar comentário:', err);
+            });
     };
 
-    const correta = questao.correta; // índice da resposta correta
+    const handleRespostaClick = (index) => {
+        if (mostrarResultado || alternativasEliminadas.includes(index)) return;
+        setRespostaSelecionada(index);
+    };
+
+    const eliminarAlternativa = (index) => {
+        if (mostrarResultado || alternativasEliminadas.includes(index)) return;
+        setAlternativasEliminadas((prev) => [...prev, index]);
+    };
+
+    const responder = () => {
+        if (respostaSelecionada !== null) {
+            setMostrarResultado(true);
+        }
+    };
 
     return (
         <li className="questao-item" style={{ marginBottom: '20px' }}>
             <strong>{questao.pergunta}</strong>
+
             <ul style={{ listStyle: 'none', paddingLeft: 0 }}>
                 {questao.respostas?.map((res, idx) => {
+                    const eliminada = alternativasEliminadas.includes(idx);
+                    const selecionada = idx === respostaSelecionada;
+
                     let style = {
-                        cursor: mostrarResultado ? 'default' : 'pointer',
+                        cursor: mostrarResultado || eliminada ? 'default' : 'pointer',
                         padding: '6px 10px',
                         borderRadius: '5px',
                         border: '1px solid #ccc',
                         marginBottom: '6px',
                         userSelect: 'none',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        backgroundColor: selecionada ? '#cce5ff' : '#fff',
+                        textDecoration: eliminada ? 'line-through' : 'none',
+                        opacity: eliminada ? 0.6 : 1,
+                        pointerEvents: eliminada ? 'none' : 'auto'
                     };
 
                     if (mostrarResultado) {
                         if (idx === correta) {
-                            style.backgroundColor = '#d4edda'; // verde claro
+                            style.backgroundColor = '#d4edda';
                             style.borderColor = '#28a745';
                             style.fontWeight = 'bold';
-                        }
-                        if (idx === respostaSelecionada && idx !== correta) {
-                            style.backgroundColor = '#f8d7da'; // vermelho claro
+                        } else if (selecionada && idx !== correta) {
+                            style.backgroundColor = '#f8d7da';
                             style.borderColor = '#dc3545';
                             style.fontWeight = 'bold';
                         }
-                    } else if (idx === respostaSelecionada) {
-                        style.backgroundColor = '#cce5ff'; // azul claro seleção
                     }
 
-                    // Corrigir exibição caso res seja objeto
                     const textoResposta = typeof res === 'object' && res !== null ? res.texto : res;
 
                     return (
@@ -221,16 +276,63 @@ const QuestaoComResposta = ({ questao, favorito, toggleFavorito }) => {
                                 if (e.key === 'Enter') handleRespostaClick(idx);
                             }}
                         >
-                            {textoResposta}
+                            <span>{textoResposta}</span>
+                            {!mostrarResultado && !eliminada && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        eliminarAlternativa(idx);
+                                    }}
+                                    className="btn-tesoura"
+                                    title="Eliminar alternativa"
+                                    style={{
+                                        marginLeft: '10px',
+                                        background: 'none',
+                                        border: 'none',
+                                        fontSize: '16px',
+                                        cursor: 'pointer',
+                                    }}
+                                >
+                                    ✂️
+                                </button>
+                            )}
                         </li>
                     );
                 })}
             </ul>
 
+            {!mostrarResultado && respostaSelecionada !== null && (
+                <button
+                    onClick={responder}
+                    className="btn-responder"
+                    style={{
+                        backgroundColor: '#28a745',
+                        color: '#fff',
+                        border: 'none',
+                        padding: '6px 12px',
+                        borderRadius: '4px',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        marginTop: '10px'
+                    }}
+                >
+                    Responder
+                </button>
+            )}
+
             <button
                 className={`btn-fav ${favorito ? 'ativo' : ''}`}
                 onClick={toggleFavorito}
                 aria-label={favorito ? 'Desmarcar favorito' : 'Marcar favorito'}
+                style={{
+                    marginLeft: '10px',
+                    marginTop: '10px',
+                    backgroundColor: '#ffc107',
+                    border: 'none',
+                    padding: '6px 10px',
+                    borderRadius: '4px',
+                    cursor: 'pointer'
+                }}
             >
                 {favorito ? '⭐' : '☆'}
             </button>
@@ -244,9 +346,69 @@ const QuestaoComResposta = ({ questao, favorito, toggleFavorito }) => {
                     )}
                 </p>
             )}
+
+            {/* Botão para mostrar/ocultar comentários */}
+            <button
+                onClick={() => setMostrarComentarios((prev) => !prev)}
+                style={{
+                    marginTop: '14px',
+                    backgroundColor: '#007bff',
+                    color: '#fff',
+                    border: 'none',
+                    padding: '6px 12px',
+                    borderRadius: '4px',
+                    cursor: 'pointer'
+                }}
+            >
+                {mostrarComentarios ? 'Ocultar Comentários' : 'Ver Comentários'}
+            </button>
+
+            {/* Comentários visíveis só se mostrarComentarios for true */}
+            {mostrarComentarios && (
+                <div style={{ marginTop: '16px' }}>
+                    <h4 style={{ marginBottom: '6px' }}>💬 Comentários</h4>
+
+                    <ul style={{ listStyle: 'none', paddingLeft: 0 }}>
+                        {comentarios.map((c) => (
+                            <li key={c.id} style={{ marginBottom: '6px', backgroundColor: '#f0f0f0', padding: '6px', borderRadius: '4px' }}>
+                                <strong>{c.autor}</strong>: {c.texto}
+                            </li>
+                        ))}
+                    </ul>
+
+                    <div style={{ display: 'flex', marginTop: '8px', gap: '6px' }}>
+                        <input
+                            type="text"
+                            value={comentario}
+                            onChange={(e) => setComentario(e.target.value)}
+                            placeholder="Escreva um comentário..."
+                            style={{
+                                flex: 1,
+                                padding: '6px',
+                                borderRadius: '4px',
+                                border: '1px solid #ccc'
+                            }}
+                        />
+                        <button
+                            onClick={enviarComentario}
+                            style={{
+                                backgroundColor: '#007bff',
+                                color: '#fff',
+                                border: 'none',
+                                padding: '6px 10px',
+                                borderRadius: '4px',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            Enviar
+                        </button>
+                    </div>
+                </div>
+            )}
         </li>
     );
 };
+
 
 
 export default Painel;
