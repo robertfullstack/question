@@ -1,0 +1,101 @@
+.painel-container {
+    display: flex;
+    min-height: 100vh;
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f8f9fa;
+}
+
+.menu-lateral {
+    width: 240px;
+    background-color: #1e2a38;
+    color: #fff;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.menu-lateral .logo {
+    font-size: 24px;
+    margin-bottom: 40px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.lista-questoes {
+    list-style: none;
+    padding: 0;
+}
+
+.questao-item {
+    background: #fff;
+    margin-bottom: 16px;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.questao-item strong {
+    font-size: 16px;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.questao-item ul {
+    padding-left: 18px;
+}
+
+.questao-item ul li {
+    margin-bottom: 6px;
+    color: #333;
+}
+
+.btn-fav {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    color: #999;
+    margin-top: 10px;
+    padding: 0;
+}
+
+.btn-fav.ativo {
+    color: gold;
+}
+
+.btn-fav:hover {
+    color: orange;
+}
+
+.menu-lateral nav button {
+    background: none;
+    border: none;
+    color: #ccc;
+    font-size: 16px;
+    text-align: left;
+    padding: 12px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: 0.3s;
+    border-radius: 6px;
+}
+
+.menu-lateral nav button:hover,
+.menu-lateral nav button.ativo {
+    background-color: #2d3e50;
+    color: #fff;
+}
+
+.painel-conteudo {
+    flex: 1;
+    padding: 40px;
+}
+
+.conteudo {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px #ddd;
+    font-size: 18px;
+}
