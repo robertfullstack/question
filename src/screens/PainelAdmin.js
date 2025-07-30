@@ -322,11 +322,19 @@ const PainelAdmin = () => {
                                             <strong>{q.pergunta}</strong>
                                             <ul>
                                                 {q.respostas.map((r, ri) => (
-                                                    <li key={ri} style={{ listStyle: q.correta === ri ? 'disc' : 'circle', fontWeight: q.correta === ri ? 'bold' : 'normal' }}>
-                                                        {r} {q.correta === ri && '(Correta)'}
+                                                    <li
+                                                        key={ri}
+                                                        style={{
+                                                            listStyle: q.correta === ri ? 'disc' : 'circle',
+                                                            fontWeight: q.correta === ri ? 'bold' : 'normal',
+                                                        }}
+                                                    >
+                                                        {typeof r === 'object' ? r.texto : r}
+                                                        {q.correta === ri && ' (Correta)'}
                                                     </li>
                                                 ))}
                                             </ul>
+
                                             <div className="acoes">
                                                 <button onClick={() => iniciarEdicaoQuestao(q)}>✏️ Editar</button>
                                                 <button onClick={() => excluirQuestao(q.id)}>🗑️ Excluir</button>

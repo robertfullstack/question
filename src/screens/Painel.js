@@ -164,6 +164,8 @@ const Painel = () => {
     );
 };
 
+// ... (todo o código permanece igual até o componente QuestaoComResposta)
+
 const QuestaoComResposta = ({ questao, favorito, toggleFavorito }) => {
     const [respostaSelecionada, setRespostaSelecionada] = useState(null);
     const [mostrarResultado, setMostrarResultado] = useState(false);
@@ -205,6 +207,9 @@ const QuestaoComResposta = ({ questao, favorito, toggleFavorito }) => {
                         style.backgroundColor = '#cce5ff'; // azul claro seleção
                     }
 
+                    // Corrigir exibição caso res seja objeto
+                    const textoResposta = typeof res === 'object' && res !== null ? res.texto : res;
+
                     return (
                         <li
                             key={idx}
@@ -216,7 +221,7 @@ const QuestaoComResposta = ({ questao, favorito, toggleFavorito }) => {
                                 if (e.key === 'Enter') handleRespostaClick(idx);
                             }}
                         >
-                            {res}
+                            {textoResposta}
                         </li>
                     );
                 })}
@@ -242,5 +247,6 @@ const QuestaoComResposta = ({ questao, favorito, toggleFavorito }) => {
         </li>
     );
 };
+
 
 export default Painel;

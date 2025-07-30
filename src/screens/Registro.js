@@ -1,12 +1,20 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { db } from '../firebaseConfig';
-import { ref, push } from 'firebase/database'; // ✅ correto na v9+
+import { ref, push } from 'firebase/database';
 import '../styles/Home.css';
+import Logo from '../images/WhatsApp_Image_2025-07-24_at_10.53.57-removebg-preview.png';
+import { FiUser, FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
+
+// Import ReactToastify
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Registro = () => {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [verSenha, setVerSenha] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -16,33 +24,82 @@ const Registro = () => {
 
     push(usuariosRef, novoUsuario)
       .then(() => {
-        alert('Aluno cadastrado com sucesso!');
+        toast.success('Aluno cadastrado com sucesso!');
         setNome('');
         setEmail('');
         setSenha('');
       })
       .catch((error) => {
         console.error('Erro ao cadastrar:', error);
-        alert('Erro ao cadastrar. Tente novamente.');
+        toast.error('Erro ao cadastrar. Tente novamente.');
       });
   };
 
   return (
-    <div className="login-page">
-      <div className="login-box">
+    <div className="login-container">
+      <ToastContainer /> {/* Toast container precisa estar presente */}
+      <div className="login-glass">
+        <img
+          src={Logo}
+          alt="Comunica Quest"
+          className="login-logo"
+          style={{ width: '200px', marginLeft: '-20px', marginBottom: '0px' }}
+        />
         <h2 className="login-title">Cadastro de Aluno</h2>
+        <p className="login-subtitle">Preencha seus dados institucionais</p>
+
         <form className="login-form" onSubmit={handleSubmit}>
-          <label htmlFor="nome">Nome completo</label>
-          <input type="text" value={nome} onChange={(e) => setNome(e.target.value)} required />
+          <div className="input-group">
+            <FiUser className="input-icon" />
+            <input
+              type="text"
+              placeholder="Nome completo"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              required
+            />
+          </div>
 
-          <label htmlFor="email">E-mail institucional</label>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          <div className="input-group">
+            <FiMail className="input-icon" />
+            <input
+              type="email"
+              placeholder="E-mail institucional"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
 
-          <label htmlFor="senha">Senha</label>
-          <input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} required />
+          <div className="input-group">
+            <FiLock className="input-icon" />
+            <input
+              type={verSenha ? 'text' : 'password'}
+              placeholder="Senha"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              required
+            />
+            <span
+              className="toggle-eye"
+              onClick={() => setVerSenha(!verSenha)}
+              title={verSenha ? 'Ocultar senha' : 'Mostrar senha'}
+              style={{ cursor: 'pointer' }}
+            >
+              {verSenha ? <FiEyeOff /> : <FiEye />}
+            </span>
+          </div>
 
-          <button type="submit">Cadastrar</button>
+          <button type="submit" className="login-button">
+            Cadastrar
+          </button>
         </form>
+
+        <div className="login-links">
+          <p>
+            Já tem conta? <Link to="/">Fazer login</Link>
+          </p>
+        </div>
       </div>
     </div>
   );

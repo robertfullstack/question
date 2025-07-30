@@ -1,12 +1,16 @@
-// src/screens/RecuperarSenha.jsx
 import React, { useState } from 'react';
 import { auth } from '../firebaseConfig';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import '../styles/Home.css'; // Ou crie um estilo próprio
 
-export const RecuperarSenha = () => {
+import { FiMail } from 'react-icons/fi';
+import { Link } from 'react-router-dom';
+
+import '../styles/Home.css'; // mesmo CSS da tela de login
+import Logo from '../images/WhatsApp_Image_2025-07-24_at_10.53.57-removebg-preview.png'; // mesma logo
+
+const RecuperarSenha = () => {
     const [email, setEmail] = useState('');
 
     const handleRecuperarSenha = async (e) => {
@@ -28,22 +32,35 @@ export const RecuperarSenha = () => {
     };
 
     return (
-        <div className="login-page">
+        <div className="login-container">
             <ToastContainer />
-            <div className="login-box">
+            <div className="login-glass">
+                <img src={Logo} alt="Comunica Quest" className="login-logo" />
                 <h2 className="login-title">Recuperar Senha</h2>
+                <p className="login-subtitle">Informe seu e-mail institucional</p>
+
                 <form className="login-form" onSubmit={handleRecuperarSenha}>
-                    <label htmlFor="email">E-mail cadastrado</label>
-                    <input
-                        type="email"
-                        id="email"
-                        placeholder="ex: aluno@escola.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                    />
-                    <button type="submit">Enviar Link</button>
+                    <div className="input-group">
+                        <FiMail className="input-icon" />
+                        <input
+                            type="email"
+                            placeholder="E-mail cadastrado"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    <button type="submit" className="login-button">
+                        Enviar Link
+                    </button>
                 </form>
+
+                <div className="login-links">
+                    <p>
+                        Lembrou a senha? <Link to="/">Voltar ao login</Link>
+                    </p>
+                </div>
             </div>
         </div>
     );
